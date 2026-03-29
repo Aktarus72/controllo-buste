@@ -10,7 +10,7 @@ st.title("🛡️ Controllo Totale Buste Paga")
 try:
     # Carichiamo il file (che caricheremo su GitHub tra poco)
     # Prova a leggere come CSV se Excel fallisce
-df = pd.read_csv("Tracker_Buste_Paga.xlsx")
+    df = pd.read_csv("Tracker_Buste_Paga.xlsx")
 
     
     # Trasformiamo la tua data MM/AAAA in una data leggibile dal computer
