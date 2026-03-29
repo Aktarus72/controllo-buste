@@ -9,7 +9,9 @@ st.title("🛡️ Controllo Totale Buste Paga")
 # Caricamento dati dal tuo file Excel
 try:
     # Carichiamo il file (che caricheremo su GitHub tra poco)
-    df = pd.read_excel("Tracker_Buste_Paga.xlsx")
+    # Prova a leggere come CSV se Excel fallisce
+df = pd.read_csv("Tracker_Buste_Paga.xlsx")
+
     
     # Trasformiamo la tua data MM/AAAA in una data leggibile dal computer
     df['Data_Convertita'] = pd.to_datetime(df['Mese'], format='%m/%Y')
