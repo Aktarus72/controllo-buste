@@ -5,30 +5,32 @@ import plotly.express as px
 st.set_page_config(page_title="Audit Buste Paga", layout="wide")
 st.title("🛡️ Controllo Totale Buste Paga")
 
-# Funzione magica per caricare il file in ogni caso
+# Caricamento dati
+@st.cache_data
 def load_data():
     nome_file = "Tracker_Buste_Paga.xlsx"
     try:
-        # Prova 1: Leggi come Excel
-        return pd.read_excel(nome_file)
+        # Prova Excel
+        df = pd.read_excel(nome_file)
     except:
-        try:
-            # Prova 2: Leggi come CSV (spesso i file scaricati cambiano formato)
-            return pd.read_csv(nome_file)
-        except:
-            return None
+        # Prova CSV
+        df = pd.read_csv(nome_file)
+    
+    # PULIZIA COLONNE: toglie spazi e rende tutto minuscolo per sicurezza
+    df.columns = df.columns.astype(str).str.strip()
+    return df
 
 df = load_data()
 
 if df is not None:
-    # Pulizia nomi colonne (toglie spazi extra)
-    df.columns = df.columns.str.strip()
+    # Cerchiamo la colonna 'Mese' anche se ha nomi leggermente diversi
+    colonna_mese = [c for c in df.columns if 'Mese' in c][0]
     
-    # Trasformazione Data
-    df['Data_Convertita'] = pd.to_datetime(df['Mese'], format='%m/%Y', errors='coerce')
+    # Conversione Data
+    df['Data_Convertita'] = pd.to_datetime(df[colonna_mese], format='%m/%Y', errors='coerce')
     df['Anno'] = df['Data_Convertita'].dt.year
     
-    st.success("✅ Dati caricati! Ora puoi controllare i furbetti.")
+    st.success("✅ Dati caricati correttamente!")
 
     # --- FILTRO ANNO ---
     annali = sorted(df['Anno'].dropna().unique(), reverse=True)
@@ -36,11 +38,12 @@ if df is not None:
         anno_sel = st.sidebar.selectbox("Seleziona l'Anno", annali)
         df_anno = df[df['Anno'] == anno_sel].sort_values('Data_Convertita')
         
-        # MOSTRA TABELLA DI CONTROLLO
+        # MOSTRA TABELLA
         st.write(f"### 📋 Riepilogo {anno_sel}")
-        st.dataframe(df_anno[['Mese', 'Netto in Busta', 'Ferie Godute (gg)', 'Permessi Goduti (ore)']])
+        # Selezioniamo solo le colonne che esistono davvero nel tuo file
+        cols_da_mostrare = [c for c in ['Mese', 'Netto in Busta', 'Ferie Godute (gg)', 'Permessi Goduti (ore)'] if c in df.columns]
+        st.dataframe(df_anno[cols_da_mostrare])
     else:
-        st.warning("Controlla il formato della colonna Mese (deve essere MM/AAAA)")
+        st.warning("Formato data non riconosciuto. Assicurati che in 'Mese' ci sia scritto tipo 01/2024")
 else:
-    st.error("❌ Errore: Non trovo il file 'Tracker_Buste_Paga.xlsx' su GitHub o il formato è errato.")
-    st.info("Assicurati che il file caricato su GitHub si chiami esattamente: Tracker_Buste_Paga.xlsx")
+    st.error("File non trovato o leggibile.")
